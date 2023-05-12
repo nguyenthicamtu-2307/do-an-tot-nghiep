@@ -1,0 +1,6 @@
+{
+  "script": "production-server/main.js",
+  "instances": "max",
+  "exec_mode": "cluster",
+  "kill_timeout": 3000
+}

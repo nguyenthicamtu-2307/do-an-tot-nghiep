@@ -1,0 +1,46 @@
+{
+  "files.exclude": {
+    ".husky": true,
+    "node_modules": true,
+    "dist": true,
+    "bin": true
+  },
+  "files.eol": "\n",
+  "editor.tabSize": 2,
+  "editor.renderWhitespace": "all",
+  "editor.formatOnSave": true,
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": true
+    }
+  },
+  "[prisma]": {
+    "editor.defaultFormatter": "Prisma.prisma"
+  },
+  "typescript.preferences.importModuleSpecifier": "relative",
+  "jest.autoRun": "off",
+  "jest.enableSnapshotUpdateMessages": false,
+  "jest.enableSnapshotPreviews": false,
+  "jest.enableCodeLens": false,
+  "cSpell.words": [
+    "Cqrs",
+    "dlir",
+    "fein",
+    "naics",
+    "Nanpan",
+    "neccessaries",
+    "Neccessary",
+    "nestjs",
+    "nextval",
+    "tpas",
+    "Zipcode"
+  ],
+  "typescript.tsdk": "node_modules\\typescript\\lib"
+}

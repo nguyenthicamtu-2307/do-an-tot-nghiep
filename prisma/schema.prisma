@@ -1,0 +1,479 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Province {
+  id           String   @id(map: "pk_province") @default(dbgenerated("uuid_generate_v4()")) @map("id") @db.VarChar
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  name         String   @db.VarChar(255)
+  slug         String   @db.VarChar(255)
+  type         String   @db.VarChar(25)
+  nameWithType String   @map("name_with_type") @db.VarChar(100)
+  code         String   @db.VarChar(10)
+  isDeleted    Boolean  @map("is_deleted") @db.Boolean
+
+  @@map("province")
+}
+
+model District {
+  id           String   @id(map: "pk_district") @default(dbgenerated("uuid_generate_v4()")) @map("id") @db.VarChar
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  name         String   @db.VarChar(255)
+  slug         String   @db.VarChar(255)
+  type         String   @db.VarChar(25)
+  nameWithType String   @map("name_with_type") @db.VarChar(100)
+  path         String   @db.VarChar(100)
+  code         String   @db.VarChar(10)
+  pathWithType String   @map("path_with_type") @db.VarChar(255)
+  parentCode   String   @map("parent_code") @db.VarChar(10)
+  isDeleted    Boolean  @map("is_deleted") @db.Boolean
+
+  @@map("district")
+}
+
+model Ward {
+  id           String   @id(map: "pk_ward") @default(dbgenerated("uuid_generate_v4()")) @map("id") @db.VarChar
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  name         String   @db.VarChar(255)
+  slug         String   @db.VarChar(255)
+  type         String   @db.VarChar(25)
+  nameWithType String   @map("name_with_type") @db.VarChar(100)
+  path         String   @db.VarChar(100)
+  pathWithType String   @map("path_with_type") @db.VarChar(255)
+  code         String   @db.VarChar(10)
+  parentCode   String   @map("parent_code") @db.VarChar(10)
+  isDeleted    Boolean  @map("is_deleted") @db.Boolean
+
+  users         User[] @relation("ward_user_address")
+  localOfficers User[] @relation("ward_local_officer_address")
+
+  @@map("ward")
+}
+
+model Bank {
+  id          String   @id(map: "pk_bank") @default(dbgenerated("uuid_generate_v4()")) @map("id") @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  imageUrl    String?  @map("image_url") @db.VarChar
+  displayName String   @map("display_name") @db.VarChar(255)
+  value       String   @unique(map: "ixuq_bank_value") @map("value") @db.VarChar(255)
+
+  @@map("bank")
+}
+
+model User {
+  id                     String     @id(map: "pk_user") @default(dbgenerated("uuid_generate_v4()")) @map("id") @db.Uuid
+  createdAt              DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt              DateTime   @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  username               String     @unique(map: "ixuq_user_username") @map("user_name") @db.VarChar(255)
+  firstName              String     @map("first_name") @db.VarChar(255)
+  middleName             String?    @map("middle_name") @db.VarChar(255)
+  lastName               String     @map("last_name") @db.VarChar(255)
+  status                 UserStatus @default(ACTIVE)
+  userType               UserType   @map("user_type")
+  avatarUrl              String?    @map("avatar_url") @db.VarChar
+  phoneNumber            String     @map("phone_number") @db.VarChar(10)
+  email                  String     @map("email") @db.VarChar(255)
+  password               String     @db.VarChar
+  provinceId             String     @map("province_id") @db.VarChar
+  districtId             String     @map("district_id") @db.VarChar
+  wardId                 String     @map("ward_id") @db.VarChar
+  localOfficerProvinceId String?    @map("local_officer_province_id")
+  localOfficerDistrictId String?    @map("local_officer_district_id")
+  localOfficerWardId     String?    @map("local_officer_ward_id")
+  isCurrentLocalOfficer  Boolean    @default(false) @map("is_current_local_officer") @db.Boolean
+  personalPageId         String?    @unique(map: "ixuq_user_personal_page_id") @map("personal_page_id") @db.Uuid
+  refreshTokenId         String?    @map("refresh_token_id") @db.VarChar
+  bankName               String?    @map("bank_name") @db.VarChar(255)
+  bankAccountNumber      String?    @map("bank_account_number") @db.VarChar(255)
+  rescueTeamName         String?    @map("rescue_team_name") @db.VarChar(255)
+  isSuperAdmin           Boolean?   @map("is_super_admin")
+
+  // Relation
+  ward                    Ward                            @relation("ward_user_address", fields: [wardId], references: [id], map: "fk_user_ward")
+  localOfficeWard         Ward?                           @relation("ward_local_officer_address", fields: [localOfficerWardId], references: [id], map: "fk_user_local_office_ward")
+  updatedEvent            Event[]                         @relation("event_closed_by")
+  createdEvent            Event[]                         @relation("event_created_by")
+  feedbacks               Feedback[]
+  loEventSupscriptions    LocalOfficerEventSubscription[]
+  rescueTeamSubscriptions RescueTeamSubscription[]
+  sponsorDonations        SponsorDonation[]
+  personalPage            PersonalPage?                   @relation(fields: [personalPageId], references: [id], map: "fk_user_personal_page")
+
+  @@index([wardId], map: "ixfk_user_ward_id")
+  @@index([personalPageId], map: "ixfk_user_personal_page_id")
+  @@map("user")
+}
+
+model PersonalPage {
+  id                  String     @id(map: "pk_personal_page") @default(dbgenerated("uuid_generate_v4()")) @map("id") @db.Uuid
+  createdAt           DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt           DateTime   @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  userType            UserType   @map("user_type")
+  isPhoneNumberHidden Boolean    @default(false) @map("is_phone_number_hidden")
+  isBirthdayHidden    Boolean    @default(false) @map("is_birthday_hidden")
+  isEmailHidden       Boolean    @default(false) @map("is_email_hidden")
+  credibilityScore    Int        @default(0) @map("credibility_score")
+  starRateAverage     Decimal    @default(5) @map("star_rate_average") @db.Decimal
+  feedbacks           Feedback[]
+  user                User?
+
+  @@map("personal_page")
+}
+
+model Feedback {
+  id              String         @id(map: "pk_feedback") @default(dbgenerated("uuid_generate_v4()")) @map("id") @db.Uuid
+  createdAt       DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime       @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  personalPageId  String         @map("personal_page_id") @db.Uuid
+  commenterId     String?        @map("commenter_id") @db.Uuid
+  starRate        Int?           @default(5) @map("star_rate")
+  comment         String         @db.VarChar
+  anonymousUserId String?        @map("anonymous_user_id") @db.Uuid
+  anonymousUser   AnonymousUser? @relation(fields: [anonymousUserId], references: [id], map: "fk_feedback_anonymous_user")
+  commenter       User?          @relation(fields: [commenterId], references: [id], map: "fk_feedback_commenter")
+  personalPage    PersonalPage   @relation(fields: [personalPageId], references: [id], map: "fk_feedback_personal_page")
+
+  @@index([personalPageId], map: "ixfk_feedback_personal_page_id")
+  @@map("feedback")
+}
+
+model AnonymousUser {
+  id          String     @id(map: "pk_anonymous_user") @default(dbgenerated("uuid_generate_v4()")) @map("id") @db.Uuid
+  createdAt   DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime   @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  email       String?    @unique(map: "ixuq_anonymous_user_email") @db.VarChar(255)
+  phoneNumber String?    @unique(map: "ixuq_anonymous_user_phone_number") @map("phone_number") @db.VarChar(255)
+  name        String     @db.VarChar(255)
+  feedbacks   Feedback[]
+
+  @@map("anonymous_user")
+}
+
+model Event {
+  id                   String                          @id(map: "pk_event") @default(dbgenerated("uuid_generate_v4()")) @map("id") @db.Uuid
+  createdAt            DateTime                        @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt            DateTime                        @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  type                 EventType
+  name                 String                          @db.VarChar(255)
+  startAt              DateTime                        @default(now()) @map("start_at") @db.Timestamptz(6)
+  endAt                DateTime?                       @map("end_at") @db.Timestamptz(6)
+  closedAt             DateTime?                       @map("closed_at") @db.Timestamptz()
+  createdByAdminUserId String                          @map("created_by_admin_user_id") @db.Uuid
+  closedByAdminUserId  String?                         @map("closed_by_admin_user_id") @db.Uuid
+  status               EventStatus                     @default(PENDING)
+  year                 Int
+  description          String                          @db.VarChar
+  closedBy             User?                           @relation("event_closed_by", fields: [closedByAdminUserId], references: [id], map: "fk_event_closed_by")
+  createdBy            User                            @relation("event_created_by", fields: [createdByAdminUserId], references: [id], map: "fk_event_created_by")
+  lOEventSubscriptions LocalOfficerEventSubscription[]
+
+  @@index([createdByAdminUserId], map: "ixfk_event_created_by_admin_user_id")
+  @@index([closedByAdminUserId], map: "ixfk_event_closed_by_admin_user_id")
+  @@map("event")
+}
+
+model LocalOfficerEventSubscription {
+  id                      String                   @id(map: "pk_lo_event_subscription") @default(dbgenerated("uuid_generate_v4()")) @map("id") @db.Uuid
+  createdAt               DateTime                 @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt               DateTime                 @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  localOfficerUserId      String                   @map("lo_user_id") @db.Uuid
+  eventId                 String                   @map("event_id") @db.Uuid
+  householdsListUrl       String?                  @map("households_list_url") @db.VarChar
+  householdsNumber        Int                      @map("households_number")
+  amountOfMoney           Int?                     @map("amount_of_money")
+  neccessariesList        String?                  @map("neccessaries_list") @db.VarChar
+  isCompleted             Boolean                  @default(false) @map("is_completed") @db.Boolean
+  isCanceled              Boolean                  @default(false) @map("is_canceled") @db.Boolean
+  houseHolds              Household[]
+  localOfficer            User                     @relation(fields: [localOfficerUserId], references: [id], map: "fk_lo_event_local_officer")
+  event                   Event                    @relation(fields: [eventId], references: [id], map: "fk_lo_event_subscription_event")
+  rescueTeamSubscriptions RescueTeamSubscription[]
+
+  @@index([eventId], map: "ixfk_lo_event_subscription_event_id")
+  @@index([localOfficerUserId], map: "ixfk_lo_event_subscription_local_officer_user_id")
+  @@map("lo_event_subscription")
+}
+
+model Household {
+  id                    String                        @id(map: "pk_household") @default(dbgenerated("uuid_generate_v4()")) @map("id") @db.Uuid
+  createdAt             DateTime                      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt             DateTime                      @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  name                  String                        @db.VarChar(255)
+  address               String                        @db.VarChar(255)
+  phoneNumber           String?                       @map("phone_number") @db.VarChar(10)
+  isCompleted           Boolean                       @default(false) @map("is_completed")
+  loEventSubscriptionId String                        @map("lo_event_subsciption_id") @db.Uuid
+  rtSubscriptionId      String?                       @map("rt_subscription_id") @db.Uuid
+  loEventSubscription   LocalOfficerEventSubscription @relation(fields: [loEventSubscriptionId], references: [id], map: "fk_household_lo_event_subsciption")
+  rtSubscription        RescueTeamSubscription?       @relation(fields: [rtSubscriptionId], references: [id], map: "fk_household_rt_subscription")
+
+  @@index([loEventSubscriptionId], map: "ixfk_lo_event_subsciption_id")
+  @@index([rtSubscriptionId], map: "ixfk_household_rt_subscription_id")
+  @@map("household")
+}
+
+model RescueTeamSubscription {
+  id                    String    @id(map: "pk_rescue_team_subscription") @default(dbgenerated("uuid_generate_v4()")) @map("id") @db.Uuid
+  createdAt             DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt             DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  loEventSubscriptionId String    @map("lo_event_subscription_id") @db.Uuid
+  rescueTeamUserId      String    @map("rescue_team_user_id") @db.Uuid
+  closedAt              DateTime? @map("closed_at") @db.Timestamptz(6)
+  isDone                Boolean   @default(false) @map("is_done")
+  originalnoney         Int       @map("original_money")
+  isApproved            Boolean   @default(false) @map("is_approved") @db.Boolean
+  isRejected            Boolean   @default(false) @map("is_rejected") @db.Boolean
+
+  donationPost        DonationPost?
+  households          Household[]
+  histories           RescueActionHistory[]
+  reliefPlan          ReliefPlan?
+  loEventSubscription LocalOfficerEventSubscription @relation(fields: [loEventSubscriptionId], references: [id], map: "fk_rescue_team_subscription_lo_event_subscription")
+  rescueTeamUser      User                          @relation(fields: [rescueTeamUserId], references: [id], map: "fk_rescue_team_subscription_rescue_team_user")
+
+  @@index([rescueTeamUserId], map: "ixfk_rescue_team_subscription_rescue_team_user_id")
+  @@index([loEventSubscriptionId], map: "ixfk_rescue_team_subscription_lo_event_subscription_id")
+  @@map("rescue_team_subscription")
+}
+
+model RescueActionHistory {
+  id               String           @id(map: "pk_rescue_action_history") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  createdAt        DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime         @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  type             RescueActionType @default(SUBSCRIBE)
+  rtSubscriptionId String           @map("rt_subscription_id") @db.Uuid
+
+  rtSubscription RescueTeamSubscription @relation(fields: [rtSubscriptionId], references: [id], map: "fk_rescue_action_history_rt_subscription")
+
+  @@index([rtSubscriptionId], map: "ixfk_rescue_action_history_rt_subscription_id")
+  @@map("rescue_action_history")
+}
+
+model ReliefPlan {
+  id               String    @id(map: "pk_relief_plan") @default(dbgenerated("uuid_generate_v4()")) @map("id") @db.Uuid
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  startAt          DateTime  @default(now()) @map("start_at") @db.Timestamptz(6)
+  endAt            DateTime? @map("end_at") @db.Timestamptz(6)
+  rtSubscriptionId String    @unique(map: "uqfk_relief_plan_rt_subscription_id") @map("rt_subscription_id") @db.Uuid
+
+  aidPackage     AidPackage?
+  neccessaries   ReliefNeccessary[]
+  rtSubscription RescueTeamSubscription @relation(fields: [rtSubscriptionId], references: [id], map: "fk_relief_plan_rt_subscription")
+  proof          ReliefProof[]
+
+  @@index([rtSubscriptionId], map: "ixfk_relief_plan_rt_subscription_id")
+  @@map("relief_plan")
+}
+
+model ReliefProof {
+  id           String     @id(map: "pk_relief_proof") @default(dbgenerated("uuid_generate_v4()")) @map("id") @db.Uuid
+  createdAt    DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime   @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  imageUrl     String     @map("image_url") @db.VarChar
+  reliefPlanId String     @map("relief_plan_id") @db.Uuid
+  reliefPlan   ReliefPlan @relation(fields: [reliefPlanId], references: [id], map: "fk_relief_proof_relief_plan")
+
+  @@index([reliefPlanId], map: "ixfk_relief_proof_relief_plan_id")
+  @@map("relief_proof")
+}
+
+model ReliefNeccessary {
+  id           String   @id(map: "pk_relief_neccessary") @default(dbgenerated("uuid_generate_v4()")) @map("id") @db.Uuid
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  name         String   @db.VarChar(255)
+  reliefPlanId String   @map("relief_plan_id") @db.Uuid
+
+  aidPackageNeccessary AidPackageNeccessary?
+  donationNeccessary   DonationNeccessary?
+  reliefPlan           ReliefPlan            @relation(fields: [reliefPlanId], references: [id], map: "fk_relief_neccessary_relief_plan")
+
+  @@index([reliefPlanId], map: "ixfk_relief_neccessary_relief_plan_id")
+  @@map("relief_neccessary")
+}
+
+model AidPackage {
+  id               String   @id(map: "pk_aid_package") @default(dbgenerated("uuid_generate_v4()")) @map("id") @db.Uuid
+  createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  description      String?  @db.VarChar
+  amountOfMoney    Int?     @map("amount_of_money")
+  totalValue       Int?     @map("total_value")
+  reliefPlanId     String   @map("relief_plan_id") @db.Uuid
+  neccessariesList String?  @map("neccessaries_list") @db.VarChar
+
+  neccessaries AidPackageNeccessary[]
+  reliefPlan   ReliefPlan             @relation(fields: [reliefPlanId], references: [id], map: "fk_aid_package_relief_plan")
+
+  @@unique([reliefPlanId], map: "uqfk_aid_package_relief_plan_id")
+  @@index([reliefPlanId], map: "ixfk_aid_package_relief_plan_id")
+  @@map("aid_package")
+}
+
+model AidPackageNeccessary {
+  id           String   @id(map: "pk_aid_neccessary") @default(dbgenerated("uuid_generate_v4()")) @map("id") @db.Uuid
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  name         String?  @db.VarChar(255)
+  quantity     Int
+  aidPackageId String   @map("aid_package_id") @db.Uuid
+  neccessaryId String   @unique(map: "uqfk_aid_package_neccessary_relief_neccessary_id") @map("neccessary_id") @db.Uuid
+
+  aidPackage AidPackage       @relation(fields: [aidPackageId], references: [id], map: "fk_aid_package_neccessary_aid_package")
+  neccessary ReliefNeccessary @relation(fields: [neccessaryId], references: [id], map: "fk_aid_package_neccessary_relief_neccessary")
+
+  @@index([aidPackageId], map: "ixfk_aid_package_neccessary_aid_package_id")
+  @@index([neccessaryId], map: "ixfk_aid_package_neccessary_relief_neccessary_id")
+  @@map("aid_neccessary")
+}
+
+model DonationPost {
+  id               String             @id(map: "pk_donation_post") @default(dbgenerated("uuid_generate_v4()")) @map("id") @db.Uuid
+  createdAt        DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime           @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  description      String             @db.VarChar
+  moneyNeed        Int                @map("money_need") @db.Integer
+  deadline         DateTime?          @db.Timestamptz(6)
+  status           DonationPostStatus @default(INCOMPLETED)
+  necessariesList  String?            @map("necessaries_list") @db.VarChar
+  donatedMoney     Int                @default(0) @map("donated_money") @db.Integer
+  rtSubscriptionId String             @unique(map: "uqfk_donation_post_rt_subscription_id") @map("rt_subscription_id") @db.Uuid
+
+  rtSubscription       RescueTeamSubscription @relation(fields: [rtSubscriptionId], references: [id], map: "fk_donation_post_rt_subscription")
+  sponsorDonations     SponsorDonation[]
+  donationNeccessaries DonationNeccessary[]
+
+  @@index([rtSubscriptionId], map: "ixfk_donation_post_rt_subscription_id")
+  @@map("donation_post")
+}
+
+model DonationNeccessary {
+  id                 String   @id(map: "pk_donation_neccessary") @default(dbgenerated("uuid_generate_v4()")) @map("id") @db.Uuid
+  createdAt          DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  reliefNeccessaryId String   @unique(map: "uqfk_donation_neccessary_relief_neccessary_id") @map("relief_neccessary_id") @db.Uuid
+  quantity           Int
+  donationPostId     String   @map("donation_post_id") @db.Uuid
+  donatedQuantity    Int      @default(0) @map("donated_quantity") @db.Integer
+
+  donationPost          DonationPost            @relation(fields: [donationPostId], references: [id], map: "fk_donation_neccessary_post")
+  reliefNeccessary      ReliefNeccessary        @relation(fields: [reliefNeccessaryId], references: [id], map: "fk_donation_neccessary_relief_neccessary")
+  sponsorDonationDetail SponsorDonationDetail[]
+
+  @@index([reliefNeccessaryId], map: "ixfk_donation_neccessary_relief_neccessary_id")
+  @@index([donationPostId], map: "ixfk_donation_neccessary_post_id")
+  @@map("donation_neccessary")
+}
+
+model SponsorDonation {
+  id                         String                  @id(map: "pk_sponsor_donation") @default(dbgenerated("uuid_generate_v4()")) @map("id") @db.Uuid
+  createdAt                  DateTime                @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt                  DateTime                @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  sponsorUserId              String                  @map("sponsor_user_id") @db.Uuid
+  donationPostId             String                  @map("donation_post_id") @db.Uuid
+  status                     SponsorDonationStatus   @default(PENDING)
+  deadline                   DateTime?               @db.Timestamptz(6)
+  money                      Int?
+  moneyTransferReceiptImgUrl String?                 @map("money_transfer_receipt_img_url") @db.VarChar
+  donationPost               DonationPost            @relation(fields: [donationPostId], references: [id], map: "fk_sponsor_donation_donation_post")
+  sponsorUser                User                    @relation(fields: [sponsorUserId], references: [id], map: "fk_sponsor_donation_sponsor_user")
+  details                    SponsorDonationDetail[]
+
+  @@index([donationPostId], map: "ixfk_sponsor_donation_donation_post_id")
+  @@index([sponsorUserId], map: "ixfk_sponsor_donation_sponsor_user_id")
+  @@map("sponsor_donation")
+}
+
+model SponsorDonationDetail {
+  id                   String             @id(map: "pk_sponsor_donation_detail") @default(dbgenerated("uuid_generate_v4()")) @map("id") @db.Uuid
+  createdAt            DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt            DateTime           @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  sponsorDonationId    String             @map("sponsor_donation_id") @db.Uuid
+  donationNeccessaryId String             @map("donation_neccessary_id") @db.Uuid
+  quantity             Int
+  donationNeccessary   DonationNeccessary @relation(fields: [donationNeccessaryId], references: [id], map: "fk_sponsor_donation_detail_donation_neccessary")
+  sponsorDonation      SponsorDonation    @relation(fields: [sponsorDonationId], references: [id], map: "fk_sponsor_donation_detail_sponsor_donation")
+
+  @@index([donationNeccessaryId], map: "ixfk_sponsor_donation_detail_donation_neccessary_id")
+  @@index([sponsorDonationId], map: "ixfk_sponsor_donation_detail_sponsor_donation_id")
+  @@map("sponsor_donation_detail")
+}
+
+enum RescueActionType {
+  SUBSCRIBE
+  APPROVED
+  RELIEF_PLAN_CREATED
+  RELIEF_PLAN_UPDATED
+  DONATION_POST_CREATED
+  DONATION_POST_UPDATED
+  DONATION_COMPLETED
+}
+
+enum UserType {
+  LOCAL_OFFICER
+  SPONSOR
+  RESCUE_TEAM
+  ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  PENDING
+}
+
+enum AdminUserStatus {
+  ACTIVE
+  INACTIVE
+  PENDING
+}
+
+enum LocalOfficerUserStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum RescueTeamUserStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum SponsorUserStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum EventType {
+  STORM
+  FLOOD
+  LANDSLIDE
+  TSUNAMI
+}
+
+enum EventStatus {
+  PENDING
+  CLOSE
+  OPEN
+}
+
+enum DonationPostStatus {
+  INCOMPLETED
+  COMPLETED
+}
+
+enum SponsorDonationStatus {
+  PENDING
+  COMPLETED
+  CANCELED
+  OVERDUE
+}

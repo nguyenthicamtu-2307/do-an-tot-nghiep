@@ -1,0 +1,32 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "declaration": true,
+    "removeComments": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "esModuleInterop": true,
+    "target": "ES2017",
+    "sourceMap": true,
+    "outDir": "./dist",
+    "baseUrl": "./",
+    "incremental": true,
+    "strictNullChecks": true,
+    "paths": {
+      "@config/*": ["src/config/*"],
+      "@config": ["src/config"],
+      "@db": ["src/prisma"],
+      "@modules/*": ["src/modules/*"],
+      "@common/*": ["src/common/*"],
+      "@events/*": ["src/events/*"],
+      "@events": ["src/events"],
+      "@workers/*": ["src/workers/*"],
+      "@services/*": ["src/services/*"],
+      "@services": ["src/services"],
+      "@common": ["src/common"],
+      "@generated/*": ["src/generated/*"],
+      "@generated": ["src/generated"]
+    }
+  },
+  "exclude": ["node_modules", "dist"]
+}
