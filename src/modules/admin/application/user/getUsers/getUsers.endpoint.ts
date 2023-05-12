@@ -1,4 +1,4 @@
-import { ApiResponse, ResponseInterceptor, UserTypes } from '@common';
+import { PaginatedApiResponse, ResponseInterceptor, UserTypes } from '@common';
 import { JwtGuard } from '@modules/auth/guard';
 import { RequestUser } from '@modules/auth/request-with-user.interface';
 import {
@@ -29,7 +29,7 @@ export class GetUsersEndpoint {
   constructor(private queryBus: QueryBus) {}
 
   @ApiOperation({ description: 'Get a list of users' })
-  @ApiResponse(GetUsersResponse)
+  @PaginatedApiResponse(GetUsersResponse)
   @Get()
   get(
     @Query() option: GetUsersRequestQuery,

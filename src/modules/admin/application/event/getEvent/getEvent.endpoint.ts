@@ -1,4 +1,4 @@
-import { ApiResponse, ResponseInterceptor, UserTypes } from '@common';
+import { ApiResponse, ResponseInterceptor } from '@common';
 import { JwtGuard } from '@modules/auth/guard';
 import {
   Controller,
@@ -9,7 +9,7 @@ import {
 } from '@nestjs/common';
 import { QueryBus } from '@nestjs/cqrs';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { UserType } from '@prisma/client';
+// import { UserType } from '@prisma/client';
 import { GetEventQuery } from './getEvent.query';
 import { GetEventRequestParam } from './getEvent.request-param';
 import { GetEventResponse } from './getEvent.response';
@@ -21,7 +21,7 @@ import { GetEventResponse } from './getEvent.response';
   version: '1',
 })
 @UseGuards(JwtGuard)
-@UserTypes(UserType.ADMIN)
+// @UserTypes(UserType.ADMIN)
 @UseInterceptors(ResponseInterceptor)
 export class GetEventEndpoint {
   constructor(private queryBus: QueryBus) {}
